@@ -1,15 +1,11 @@
 {
   "version": 2,
+  "framework": "vite",
   "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/dist",
-  "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/chat/:path*",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/:path*",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
