@@ -1,6 +1,6 @@
 import { WebSocket } from 'ws';
-import { routeMessage } from './messageRouter';
-import { roomManager } from "../services/RoomManager";
+import { MessagePayload, routeMessage, removeClient } from './messageRouter.js';
+import { roomManager } from '../services/RoomManager.js';
 import { nanoid } from 'nanoid';
 
 interface CustomWebSocket extends WebSocket {

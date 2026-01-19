@@ -1,8 +1,8 @@
-import { WebSocket } from 'ws';
-import { handleJoin } from "../handlers/joinHandler";
-import { handleMessage } from "../handlers/messageHandlers";
-import { handleControl } from "../handlers/controlHandler";
-import { handleLeave } from "../handlers/leaveHandler";
+import { ExtendedWebSocket } from './connection.js';
+import { handleJoin } from '../handlers/joinHandler.js';
+import { handleMessage } from '../handlers/messageHandlers.js';
+import { handleControl } from '../handlers/controlHandler.js';
+import { handleLeave } from '../handlers/leaveHandler.js';
 
 
 

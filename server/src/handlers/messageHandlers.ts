@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { roomManager } from "../services/RoomManager";
+import { roomManager } from "../services/RoomManager.js";
 import { WebSocket } from "ws";
 
 // Extend WebSocket to include custom properties

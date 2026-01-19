@@ -1,5 +1,5 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import { handleConnection } from './ws/connection'
+import { handleConnection } from './ws/connection.js'
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -8,7 +8,7 @@ const wss: WebSocketServer = new WebSocketServer({ port: parseInt(process.env.PO
 wss.on('connection', handleConnection);
 
 // Start room lifecycle check (runs every 5 seconds)
-import { roomManager } from './services/RoomManager';
+import { roomManager } from './services/RoomManager.js';
 setInterval(() => {
     roomManager.checkLifecycle();
 }, 5000);

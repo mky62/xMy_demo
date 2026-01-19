@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { roomManager } from "../services/RoomManager";
+import { roomManager } from "../services/RoomManager.js";
 
 // Define your message types
 interface SystemMessage {
@@ -32,11 +32,11 @@ interface ErrorMessage {
 }
 
 // Union type of all possible broadcast payloads
-export type BroadcastPayload = 
-    | SystemMessage 
-    | ChatMessage 
-    | MuteStateMessage 
-    | DeleteMessage 
+export type BroadcastPayload =
+    | SystemMessage
+    | ChatMessage
+    | MuteStateMessage
+    | DeleteMessage
     | ErrorMessage;
 
 export function broadcast(roomId: string, payload: BroadcastPayload): void {

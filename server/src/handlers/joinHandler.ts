@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { roomManager } from '../services/RoomManager'
+import { roomManager } from '../services/RoomManager.js'
 
 
 interface JoinPayload {

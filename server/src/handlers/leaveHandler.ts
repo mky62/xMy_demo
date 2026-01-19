@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { roomManager } from '../services/RoomManager';
+import { roomManager } from '../services/RoomManager.js';
 
 interface LeavePayload {
     type: "LEAVE_ROOM";
@@ -8,7 +8,7 @@ interface LeavePayload {
 
 export function handleLeave(ws: WebSocket, payload: LeavePayload): void {
     const socket = ws as any;
-    
+
     // Verify sessionId matches the socket's sessionId
     if (payload.sessionId !== socket.sessionId) {
         roomManager.sendToUser(ws, {
@@ -20,7 +20,7 @@ export function handleLeave(ws: WebSocket, payload: LeavePayload): void {
 
     // Mark as intentional leave - this will be handled in connection close
     socket.intentionalLeave = true;
-    
+
     // Close the connection
     socket.close(1000, "Intentional leave");
 }
