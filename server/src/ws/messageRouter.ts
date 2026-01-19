@@ -1,3 +1,4 @@
+import { WebSocket } from 'ws';
 import { ExtendedWebSocket } from './connection.js';
 import { handleJoin } from '../handlers/joinHandler.js';
 import { handleMessage } from '../handlers/messageHandlers.js';
@@ -15,7 +16,7 @@ type MessageType =
     | "EXTEND_ROOM"
     | "LEAVE_ROOM";
 
-interface BaseMessage {
+export interface MessagePayload {
     type: MessageType;
     [key: string]: any; //allow addtional properties
 }
@@ -36,7 +37,7 @@ function isMessageType(type: unknown): type is MessageType {
     return typeof type === "string" && type in handlers;
 }
 
-export function routeMessage(ws: WebSocket, message: any) {
+export function routeMessage(ws: ExtendedWebSocket, message: any) {
     const type = message?.type;
     if (!isMessageType(type)) {
         console.warn(`unknown message: ${String(type)}`);

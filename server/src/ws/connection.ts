@@ -1,9 +1,9 @@
 import { WebSocket } from 'ws';
-import { MessagePayload, routeMessage, removeClient } from './messageRouter.js';
+import { routeMessage } from './messageRouter.js';
 import { roomManager } from '../services/RoomManager.js';
 import { nanoid } from 'nanoid';
 
-interface CustomWebSocket extends WebSocket {
+export interface ExtendedWebSocket extends WebSocket {
   roomId: string | null;
   username: string | null;
   sessionId: string;
@@ -13,7 +13,7 @@ interface CustomWebSocket extends WebSocket {
 export function handleConnection(ws: WebSocket) {
   console.log("handling new connection");
 
-  const socket = ws as CustomWebSocket;
+  const socket = ws as ExtendedWebSocket;
   socket.roomId = null;
   socket.username = null;
   socket.sessionId = nanoid(); // Generate unique sessionId
