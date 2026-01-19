@@ -2,6 +2,7 @@ import { WebSocket } from 'ws';
 import { handleJoin } from "../handlers/joinHandler";
 import { handleMessage } from "../handlers/messageHandlers";
 import { handleControl } from "../handlers/controlHandler";
+import { handleLeave } from "../handlers/leaveHandler";
 
 
 
@@ -10,7 +11,9 @@ type MessageType =
     | "MESSAGE"
     | "DELETE_MESSAGE"
     | "MUTE_USER"
-    | "UNMUTE_USER";
+    | "UNMUTE_USER"
+    | "EXTEND_ROOM"
+    | "LEAVE_ROOM";
 
 interface BaseMessage {
     type: MessageType;
@@ -25,7 +28,8 @@ const handlers: Record<MessageType, MessageHandler> = {
     "DELETE_MESSAGE": handleMessage,
     "MUTE_USER": handleControl,
     "UNMUTE_USER": handleControl,
-
+    "EXTEND_ROOM": handleControl,
+    "LEAVE_ROOM": handleLeave,
 };
 
 function isMessageType(type: unknown): type is MessageType {

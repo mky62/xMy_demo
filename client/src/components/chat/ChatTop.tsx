@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import logo from '../../assets/base_logo.svg';
 
 interface ChatTopProps {
@@ -6,8 +6,33 @@ interface ChatTopProps {
   userCount: number;
 }
 
-function ChatTop({ roomId, userCount }: ChatTopProps) {
+function ChatTop({ roomId, userCount, expiresAt }: ChatTopProps & { expiresAt?: number | null }) {
   const [copied, setCopied] = useState<boolean>(false);
+  const [timeLeft, setTimeLeft] = useState<string>("");
+  const [isLowTime, setIsLowTime] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!expiresAt) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const diff = expiresAt - now;
+
+      if (diff <= 0) {
+        setTimeLeft("00:00");
+        setIsLowTime(true);
+        return;
+      }
+
+      setIsLowTime(diff < 60000); // Less than 1 minute
+
+      const minutes = Math.floor(diff / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
 
   const copyRoomId = async (): Promise<void> => {
     try {
@@ -43,6 +68,14 @@ function ChatTop({ roomId, userCount }: ChatTopProps) {
           </div>
         </div>
       </div>
+
+      {/* Center: Timer Display */}
+      {expiresAt && (
+        <div className={`absolute left-1/2 -translate-x-1/2 hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border ${isLowTime ? 'bg-red-900/30 border-red-500/50 text-red-200 animate-pulse' : 'bg-slate-800/50 border-slate-600/50 text-slate-300'}`}>
+          <span className="text-[10px] uppercase tracking-wider font-bold">Time Left</span>
+          <span className="font-mono font-bold text-sm tabular-nums">{timeLeft}</span>
+        </div>
+      )}
 
       {/* Right: User Count Badge - Adjusted for dark theme and mobile */}
       <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 border border-slate-600/50 bg-slate-800/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md">

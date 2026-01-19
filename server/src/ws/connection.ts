@@ -1,10 +1,13 @@
 import { WebSocket } from 'ws';
 import { routeMessage } from './messageRouter';
 import { roomManager } from "../services/RoomManager";
+import { nanoid } from 'nanoid';
 
 interface CustomWebSocket extends WebSocket {
   roomId: string | null;
   username: string | null;
+  sessionId: string;
+  intentionalLeave?: boolean;
 }
 
 export function handleConnection(ws: WebSocket) {
@@ -13,6 +16,13 @@ export function handleConnection(ws: WebSocket) {
   const socket = ws as CustomWebSocket;
   socket.roomId = null;
   socket.username = null;
+  socket.sessionId = nanoid(); // Generate unique sessionId
+
+  // Send sessionId to client immediately
+  socket.send(JSON.stringify({
+    type: 'SESSION_ESTABLISHED',
+    sessionId: socket.sessionId
+  }));
 
   socket.on("message", (raw: Buffer) => {
 
@@ -38,14 +48,7 @@ export function handleConnection(ws: WebSocket) {
 
     if (!socket.roomId) return;
 
-    const result = roomManager.leaveRoom(socket.roomId, socket);
-    if (result) {
-      roomManager.broadcast(socket.roomId, {
-        type: "SYSTEM",
-        text: `${result.username} left the room`,
-        userCount: result.userCount,
-        owner: result.owner,
-      });
-    }
+    // Use markDisconnected for reconnect handling
+    roomManager.markDisconnected(socket.roomId, socket);
   });
 }

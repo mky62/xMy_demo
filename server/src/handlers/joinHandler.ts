@@ -6,6 +6,7 @@ interface JoinPayload {
     type: "JOIN_ROOM";
     roomId?: string;
     username?: string;
+    sessionId?: string; // Client should include their sessionId
 }
 
 export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
@@ -13,10 +14,18 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
         return;
     }
 
+    // Verify sessionId matches the socket's sessionId
+    const socket = ws as any;
+    if (payload.sessionId !== socket.sessionId) {
+        roomManager.sendToUser(ws, {
+            type: "ERROR",
+            message: "Invalid session"
+        });
+        return;
+    }
 
     const usernameRegex = /^[a-zA-Z0-9_]{5,25}$/;
     const roomRegex = /^[a-zA-Z0-9_-]{5,35}$/;
-
 
     if (!usernameRegex.test(payload.username)) {
         roomManager.sendToUser(ws, {
@@ -26,9 +35,16 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
         return;
     }
 
-    let result: { owner: string | null; userCount: number };
+    let result: {
+        owner: string | null;
+        userCount: number;
+        role: 'owner' | 'participant';
+        sessionId: string;
+        reconnected?: boolean;
+        expiresAt: number;
+    };
     try {
-        result = roomManager.joinRoom(payload.roomId, payload.username, ws);
+        result = roomManager.reconnectSession(payload.roomId, payload.username, ws);
     }
     catch (err) {
         const errorMessage = err instanceof Error ? err.message : "unknown error";
@@ -39,8 +55,23 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
         return;
     }
 
-    const { owner, userCount } = result;
+    const { owner, userCount, role, sessionId } = result;
 
+    // Send authoritative join confirmation to user
+    roomManager.sendToUser(ws, {
+        type: "JOIN_SUCCESS",
+        roomId: payload.roomId,
+        username: payload.username,
+        userCount,
+        owner,
+        role,
+        sessionId,
+        isOwner: role === 'owner',
+        reconnected: result.reconnected || false,
+        expiresAt: result.expiresAt
+    });
+
+    // Broadcast join to other users
     roomManager.broadcast(payload.roomId, {
         type: "SYSTEM",
         text: `${payload.username} joined the room`,
