@@ -48,20 +48,20 @@ function ChatTop({ roomId, userCount, expiresAt }: ChatTopProps & { expiresAt?: 
   };
 
   return (
-    <div className="relative flex justify-between items-center bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-3 sm:px-6 py-2 sm:py-3 min-h-[60px] rounded-b-2xl">
+    <div className="relative flex justify-between items-center bg-slate-900/80 backdrop-blur-md border border-slate-700/50 px-3 sm:px-6 py-2 sm:py-3 min-h-[60px] rounded-b-2xl gap-2">
       {/* Left: Room ID Section - Responsive sizing */}
-      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink min-w-0">
         <div className="flex-shrink-0">
           <img src={logo} alt="Logo" className="w-8 h-6 sm:w-14 sm:h-12" />
         </div>
         <div
           onClick={copyRoomId}
-          className="group cursor-pointer flex flex-col items-start leading-tight flex-1 min-w-0"
+          className="group cursor-pointer flex flex-col items-start leading-tight min-w-0"
         >
-          <span className="text-xs sm:text-[10px] uppercase tracking-widest text-sky-400 font-bold">
+          <span className="text-xs sm:text-[10px] uppercase tracking-widest text-sky-400 font-bold hidden sm:block">
             Room Session
           </span>
-          <div className="flex items-center gap-1 sm:gap-2 truncate">
+          <div className="flex items-center gap-1 sm:gap-2 max-w-[100px] sm:max-w-none">
             <span className="text-white font-mono text-xs sm:text-sm tracking-tight underline group-hover:text-yellow-400 hover:underline-offset-2 transition-colors truncate">
               {roomId}
             </span>
@@ -69,25 +69,25 @@ function ChatTop({ roomId, userCount, expiresAt }: ChatTopProps & { expiresAt?: 
         </div>
       </div>
 
-      {/* Center: Timer Display */}
+      {/* Center: Timer Display - Now part of flex flow, not absolute */}
       {expiresAt && (
-        <div className={`absolute left-1/2 -translate-x-1/2 hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border ${isLowTime ? 'bg-red-900/30 border-red-500/50 text-red-200 animate-pulse' : 'bg-slate-800/50 border-slate-600/50 text-slate-300'}`}>
-          <span className="text-[10px] uppercase tracking-wider font-bold">Time Left</span>
-          <span className="font-mono font-bold text-sm tabular-nums">{timeLeft}</span>
+        <div className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 rounded-full border ${isLowTime ? 'bg-red-900/30 border-red-500/50 text-red-200 animate-pulse' : 'bg-slate-800/50 border-slate-600/50 text-slate-300'} transition-all`}>
+          <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-bold hidden xs:inline">Time Left</span>
+          <span className="font-mono font-bold text-xs sm:text-sm tabular-nums">{timeLeft}</span>
         </div>
       )}
 
-      {/* Right: User Count Badge - Adjusted for dark theme and mobile */}
+      {/* Right: User Count Badge */}
       <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 border border-slate-600/50 bg-slate-800/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md">
         <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full animate-pulse" />
         <span className="text-[10px] sm:text-xs font-bold text-indigo-100 tracking-tighter">
-          {userCount} inside
+          {userCount} <span className="hidden sm:inline">inside</span>
         </span>
       </div>
 
-      {/* Notification: Improved positioning and mobile-friendly */}
+      {/* Notification */}
       {copied && (
-        <div className="absolute -bottom-2 sm:-bottom-10 left-1/2 -translate-x-1/2 bg-slate-600/95 text-white text-xs px-3 py-1.5 rounded-md shadow-lg border border-slate-500/30 animate-bounce z-10 whitespace-nowrap">
+        <div className="absolute -bottom-8 sm:-bottom-10 left-1/2 -translate-x-1/2 bg-slate-600/95 text-white text-xs px-3 py-1.5 rounded-md shadow-lg border border-slate-500/30 animate-bounce z-10 whitespace-nowrap">
           Copied to clipboard!
         </div>
       )}
