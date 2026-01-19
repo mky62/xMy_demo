@@ -7,6 +7,9 @@
     "server": "cd server && npm run dev",
     "client": "cd client && npm run dev"
   },
+  "dependencies": {
+    "serve": "^14.2.1"
+  },
   "devDependencies": {
     "concurrently": "^8.2.2"
   }
