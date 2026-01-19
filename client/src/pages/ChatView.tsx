@@ -1,4 +1,4 @@
-import { useReducer, useState } from "react";
+import { useReducer, useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import ChatTop from "../components/chat/ChatTop";
 import ChatBottom from "../components/chat/ChatBottom";
@@ -31,10 +31,39 @@ function ChatView() {
   const { roomId } = useParams<{ roomId: string }>();
   const { state } = useLocation() as { state: LocationState | null };
   const navigate = useNavigate();
-  const username = state?.username;
+
+  // Initialize username from state OR session storage
+  const [username] = useState<string | null>(() => {
+    if (state?.username) return state.username;
+    if (roomId) {
+      try {
+        const stored = sessionStorage.getItem(`chat_session_${roomId}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          return parsed.username;
+        }
+      } catch (e) {
+        console.error("Failed to parse session", e);
+      }
+    }
+    return null;
+  });
+
+  // Persist username to session storage
+  useEffect(() => {
+    if (roomId && username) {
+      sessionStorage.setItem(`chat_session_${roomId}`, JSON.stringify({ username }));
+    }
+  }, [roomId, username]);
+
+  // Redirect if no username found
+  useEffect(() => {
+    if (!username || !roomId) {
+      navigate("/");
+    }
+  }, [username, roomId, navigate]);
 
   if (!username || !roomId) {
-    navigate("/");
     return null;
   }
 

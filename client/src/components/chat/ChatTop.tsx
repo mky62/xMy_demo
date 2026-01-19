@@ -72,7 +72,7 @@ function ChatTop({ roomId, userCount, expiresAt }: ChatTopProps & { expiresAt?: 
       {/* Center: Timer Display - Now part of flex flow, not absolute */}
       {expiresAt && (
         <div className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 rounded-full border ${isLowTime ? 'bg-red-900/30 border-red-500/50 text-red-200 animate-pulse' : 'bg-slate-800/50 border-slate-600/50 text-slate-300'} transition-all`}>
-          <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-bold hidden xs:inline">Time Left</span>
+          <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-bold hidden sm:inline">Time Left</span>
           <span className="font-mono font-bold text-xs sm:text-sm tabular-nums">{timeLeft}</span>
         </div>
       )}
