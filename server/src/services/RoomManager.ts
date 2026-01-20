@@ -30,7 +30,8 @@ interface BroadcastPayload {
 
 class RoomManager {
     public rooms: Map<string, Room>;
-    private readonly ROOM_TTL_MS = 15 * 60 * 1000; // 15 minutes
+    // private readonly ROOM_TTL_MS = 15 * 60 * 1000; // 15 minutes
+    private readonly ROOM_TTL_MS = 2 * 60 * 1000; // 1 minute (TESTING)
     private readonly WARNING_MS = 60 * 1000; // 1 minute
 
     constructor() {
@@ -343,16 +344,19 @@ class RoomManager {
             text: 'Room has expired'
         });
 
-        // Close all sockets
-        for (const client of room.clients) {
-            client.close(1000, "Room expired");
-        }
+        // Slight delay to ensure message is received before close
+        setTimeout(() => {
+            // Close all sockets
+            for (const client of room.clients) {
+                client.close(1000, "Room expired");
+            }
 
-        // Cleanup
-        room.clients.clear();
-        room.usernames.clear();
-        room.disconnectedUsers.clear();
-        this.rooms.delete(roomId);
+            // Cleanup
+            room.clients.clear();
+            room.usernames.clear();
+            room.disconnectedUsers.clear();
+            this.rooms.delete(roomId);
+        }, 500);
     }
 
     extendRoom(oldRoomId: string, requesterSessionId: string): string {

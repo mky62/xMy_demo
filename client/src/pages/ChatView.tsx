@@ -221,31 +221,65 @@ function ChatView() {
 
       {/* Expiry Warning Modal */}
       {expiryWarning && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-zinc-900 p-6 rounded-xl border border-red-500/30 max-w-md w-full shadow-2xl mx-4">
-            <h3 className="text-xl font-bold text-red-400 mb-2 flex items-center gap-2">
-              <span className="animate-pulse">⚠️</span> Room Expiring
-            </h3>
-            <p className="text-zinc-300 mb-6 font-medium">
-              This room will expire in less than a minute.
-              <br />
-              <span className="text-sm text-zinc-500 mt-2 block">
-                {expiryWarning.text}
-              </span>
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={dismissWarning}
-                className="px-4 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-              >
-                Let it die
-              </button>
-              <button
-                onClick={extendRoom}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold shadow-lg transition-transform active:scale-95"
-              >
-                Extend (Migrate)
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Darker Overlay */}
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" />
+
+          {/* Positioning Wrapper */}
+          <div className="relative w-full max-w-sm">
+
+            {/* 1. THE PULSING AURA (New) */}
+            {/* This creates the heartbeat effect behind the modal */}
+            <div className="absolute -inset-1 bg-red-600/30 rounded-2xl blur-md animate-pulse" />
+            <div className="absolute -inset-4 bg-red-600/10 rounded-[2rem] blur-xl animate-pulse delay-75" />
+
+            {/* Main Modal Card */}
+            <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl shadow-red-900/50 animate-in fade-in zoom-in-95 duration-300 border border-red-500/20">
+
+              {/* Glass Background */}
+              <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md" />
+
+              {/* Inner Gradient Border Glow */}
+              <div
+                className="absolute inset-0 p-[1px] bg-gradient-to-br from-red-500 via-red-900/40 to-transparent rounded-2xl pointer-events-none"
+                style={{ mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', maskComposite: 'exclude' }}
+              />
+
+              <div className="relative p-6 space-y-4">
+                <div className="flex items-center gap-3 text-red-500">
+                  {/* 2. Urgent Icon Animation */}
+                  <div className="p-2 bg-red-500/10 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+                  </div>
+                  <h3 className="text-xl font-bold tracking-tight text-red-100">Room Expiring</h3>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-red-50 font-medium">This room will expire in less than a minute.</p>
+                  <p className="text-sm text-red-200/60">{expiryWarning.text}</p>
+                </div>
+
+                <div className="flex flex-col gap-3 pt-2">
+                  <button
+                    onClick={extendRoom}
+                    className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-900/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 border border-red-500/20"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14" /><path d="m19 12-7 7-7-7" /></svg>
+                    Extend Room (Migrate)
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      dismissWarning();
+                      sessionStorage.removeItem(`chat_session_${roomId}`);
+                      navigate("/");
+                    }}
+                    className="w-full py-2.5 text-sm font-medium text-zinc-500 hover:text-red-300 transition-colors"
+                  >
+                    Let it die
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

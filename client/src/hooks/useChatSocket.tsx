@@ -27,6 +27,7 @@ export function useChatSocket({
 
   const [expiryWarning, setExpiryWarning] = useState<{ timeLeft: number, text: string } | null>(null);
   const [roomExpiry, setRoomExpiry] = useState<number | null>(null);
+  const expiryHandledRef = useRef(false);
 
   // Keep latest onMessage in a ref
   const onMessageRef = useRef(onMessage);
@@ -50,6 +51,13 @@ export function useChatSocket({
       console.log("WebSocket Disconnected", event.code, event.reason);
       setIsConnected(false);
       setSessionId(null);
+
+      if (event.reason === "Room expired") {
+        if (onMessageRef.current && !expiryHandledRef.current) {
+          expiryHandledRef.current = true;
+          onMessageRef.current({ type: 'ROOM_EXPIRED', text: 'Room has expired' });
+        }
+      }
     };
 
     socket.onerror = (error: Event) => {
@@ -84,6 +92,11 @@ export function useChatSocket({
       // Handle Room Warning
       if (data.type === 'ROOM_WARNING') {
         setExpiryWarning({ timeLeft: data.timeLeft, text: data.text });
+      }
+
+      // Handle Room Expiry Message directly
+      if (data.type === 'ROOM_EXPIRED') {
+        expiryHandledRef.current = true;
       }
 
       if (onMessageRef.current) {

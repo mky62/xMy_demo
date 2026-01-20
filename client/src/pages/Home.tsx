@@ -99,6 +99,12 @@ function Home() {
       if (!cleanUsername) return alert("Username cannot be empty");
       if (cleanUsername.length > 25) return alert("Username too long (max 25)");
       setUsername(cleanUsername);
+
+      // Auto-generate Room ID when moving to Step 2
+      if (!roomId) {
+        generateRoomId();
+      }
+
       setStep(2);
       return;
     }
@@ -140,9 +146,8 @@ function Home() {
 
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none z-0">
         <div
-          className={`w-[120vw] h-[60vw] max-w-[1600px] max-h-[800px] rounded-t-full transition-all duration-[2500ms] ease-out ${
-            glowActive ? "opacity-100 scale-100" : "opacity-0 scale-90"
-          }`}
+          className={`w-[120vw] h-[60vw] max-w-[1600px] max-h-[800px] rounded-t-full transition-all duration-[2500ms] ease-out ${glowActive ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            }`}
           style={{
             background: `radial-gradient(ellipse at center top,
               rgba(245, 158, 11, 0.18) 0%,
@@ -245,11 +250,10 @@ function Home() {
                 <div className="relative group">
                   <input
                     type="text"
-                    placeholder="Enter room ID..."
+                    placeholder="Generating room ID..."
                     value={roomId}
-                    onChange={(e) => setRoomId(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleNext()}
-                    className="h-16 w-full bg-white/90 backdrop-blur-md border-2 border-teal-500/30 hover:border-teal-500/50 focus:border-teal-600 text-neutral-800 placeholder:text-neutral-500 text-center text-lg font-medium rounded-2xl shadow-xl shadow-teal-500/10 transition-all"
+                    readOnly
+                    className="h-16 w-full bg-white/90 backdrop-blur-md border-2 border-teal-500/30 text-neutral-600 text-center text-lg font-mono font-medium rounded-2xl shadow-xl shadow-teal-500/10 transition-all cursor-default focus:outline-none"
                   />
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-teal-200/40 to-emerald-200/40 opacity-0 group-hover:opacity-100 transition-opacity -z-10 blur-xl" />
                 </div>
@@ -286,14 +290,12 @@ function Home() {
 
         <div className="flex items-center justify-center gap-2">
           <div
-            className={`h-2.5 rounded-full transition-all ${
-              step === 1 ? "bg-gradient-to-r from-emerald-600 to-teal-600 w-10" : "bg-neutral-300 w-2.5"
-            }`}
+            className={`h-2.5 rounded-full transition-all ${step === 1 ? "bg-gradient-to-r from-emerald-600 to-teal-600 w-10" : "bg-neutral-300 w-2.5"
+              }`}
           />
           <div
-            className={`h-2.5 rounded-full transition-all ${
-              step === 2 ? "bg-gradient-to-r from-emerald-600 to-teal-600 w-10" : "bg-neutral-300 w-2.5"
-            }`}
+            className={`h-2.5 rounded-full transition-all ${step === 2 ? "bg-gradient-to-r from-emerald-600 to-teal-600 w-10" : "bg-neutral-300 w-2.5"
+              }`}
           />
         </div>
 
@@ -303,7 +305,7 @@ function Home() {
             <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Leave no trace.</span>
           </p>
           <p className="text-sm md:text-base text-neutral-600 leading-relaxed">
-            Every conversation self-destructs in 10 minutes. Zero accounts. Zero history.
+            Every conversation self-destructs in 15 minutes. Zero accounts. Zero history.
             <span className="text-teal-600 font-semibold"> Zero compromises.</span>
           </p>
         </div>
