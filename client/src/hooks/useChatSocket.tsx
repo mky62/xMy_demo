@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface UseChatSocketParams {
   roomId: string;
@@ -7,7 +7,7 @@ interface UseChatSocketParams {
 }
 
 interface UseChatSocketReturn {
-  socketRef: RefObject<WebSocket | null>;
+  socketRef: React.RefObject<WebSocket | null>;
   isConnected: boolean;
   sessionId: string | null;
   expiryWarning: { timeLeft: number; text: string } | null;

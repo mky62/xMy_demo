@@ -1,57 +1,53 @@
-import { useState, useRef, useEffect, type RefObject } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import sendIcon from "../../assets/send.svg";
+import { useChatSender } from "../../hooks/useChatSender";
+
 
 interface ChatBottomProps {
-  socketRef: RefObject<WebSocket | null>;
+  socketRef: React.RefObject<WebSocket | null>;
   roomId: string;
   username: string;
   isConnected: boolean;
 }
 
-function ChatBottom({ socketRef, roomId, username, isConnected }: ChatBottomProps) {
+function ChatBottom({
+  socketRef,
+  roomId,
+  username,
+  isConnected,
+}: ChatBottomProps) {
   const [message, setMessage] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { canSend, sendMessage } = useChatSender({
+    socketRef,
+    roomId,
+    username,
+    isConnected,
+  })
 
   // Auto-focus input when component mounts
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  function handleSend(): void {
-    const trimmed = message.trim();
+  const handleSend = useCallback(() => {
+    const success = sendMessage(message);
+    if (!success) return;
 
-    // ⛔ Prevent empty messages
-    if (!trimmed) return;
-
-    // ⛔ Prevent sending if socket not ready
-    if (
-      !socketRef.current ||
-      socketRef.current.readyState !== WebSocket.OPEN
-    ) {
-      console.warn("WebSocket not ready");
-      return;
-    }
-
-    socketRef.current.send(
-      JSON.stringify({
-        type: "MESSAGE",
-        roomId,
-        username,
-        text: trimmed,
-      })
-    );
-
-    // Clear input & refocus
     setMessage("");
     inputRef.current?.focus();
-  }
+  }, [message, sendMessage]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // safety (no accidental form behavior)
-      handleSend();
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend]
+  );
 
   return (
     <div className="shrink-0 flex h-16 items-center gap-2 px-4 py-3 bg-neutral-900/60 border-neutral-700">
@@ -69,7 +65,7 @@ function ChatBottom({ socketRef, roomId, username, isConnected }: ChatBottomProp
 
       <button
         onClick={handleSend}
-        disabled={!message.trim() || !isConnected}
+        disabled={!message.trim() || !canSend}
         className="flex items-center justify-center
                    h-10 w-10 rounded-full
                    bg-amber-400 hover:bg-amber-500
