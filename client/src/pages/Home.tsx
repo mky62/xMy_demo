@@ -252,7 +252,6 @@ function Home() {
                     type="text"
                     placeholder="Generating room ID..."
                     value={roomId}
-                    readOnly
                     className="h-16 w-full bg-white/90 backdrop-blur-md border-2 border-teal-500/30 text-neutral-600 text-center text-lg font-mono font-medium rounded-2xl shadow-xl shadow-teal-500/10 transition-all cursor-default focus:outline-none"
                   />
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-teal-200/40 to-emerald-200/40 opacity-0 group-hover:opacity-100 transition-opacity -z-10 blur-xl" />
