@@ -73,7 +73,6 @@ class RoomManager {
             room.broadcast({
                 type: "SYSTEM",
                 text: `${username} reconnected`,
-                text: `${username} reconnected`,
                 userCount: room.clients.size,
                 users: Array.from(room.usernames.values()),
                 owner: room.owner,
