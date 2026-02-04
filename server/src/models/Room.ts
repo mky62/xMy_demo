@@ -12,7 +12,9 @@ export class Room {
     public clients: Set<CustomWebSocket> = new Set();
     public mutedUsers: Set<string> = new Set();
     public usernames: Map<string, string> = new Map();
+    public usernames: Map<string, string> = new Map();
     public disconnectedUsers: Map<string, DisconnectedUserInfo> = new Map();
+    public history: BroadcastPayload[] = [];
 
     public state: RoomState = 'active';
     public readonly createdAt: number;
@@ -40,6 +42,16 @@ export class Room {
     public sendToUser(ws: WebSocket | CustomWebSocket, payload: BroadcastPayload): void {
         if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify(payload));
+        }
+    }
+
+    public addToHistory(payload: BroadcastPayload): void {
+        // Only store chat messages
+        if (payload.type === 'CHAT_MESSAGE') {
+            this.history.push(payload);
+            if (this.history.length > 50) {
+                this.history.shift();
+            }
         }
     }
 

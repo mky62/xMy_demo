@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import logo from '../../assets/base_logo.svg';
+import logo from '../../assets/chatlogo.svg';
 
 interface ChatTopProps {
   roomId: string;

@@ -26,6 +26,7 @@ class RoomManager {
         users: string[];
         role: 'owner' | 'participant';
         sessionId: string;
+        history: BroadcastPayload[];
         expiresAt: number;
     } {
         const socket = ws as CustomWebSocket;
@@ -43,6 +44,7 @@ class RoomManager {
             users: Array.from(room.usernames.values()),
             role: room.getRole(socket.sessionId),
             sessionId: socket.sessionId,
+            history: room.history,
             expiresAt: room.expiresAt
         };
     }
@@ -54,6 +56,7 @@ class RoomManager {
         role: 'owner' | 'participant';
         sessionId: string;
         reconnected: boolean;
+        history: BroadcastPayload[];
         expiresAt: number;
     } {
         const socket = ws as CustomWebSocket;
@@ -63,11 +66,24 @@ class RoomManager {
             return { ...this.joinRoom(roomId, username, ws), reconnected: false };
         }
 
-        const disconnected = room.disconnectedUsers.get(socket.sessionId);
-        if (disconnected && disconnected.username === username) {
-            clearTimeout(disconnected.timer);
-            room.disconnectedUsers.delete(socket.sessionId);
+        // Reconnection Logic: Find disconnected session by USERNAME
+        // (Vercel/Reloads change the socket.sessionId, so we must lookup by username)
+        let previousSessionId: string | null = null;
+        for (const [sid, info] of room.disconnectedUsers.entries()) {
+            if (info.username === username) {
+                previousSessionId = sid;
+                break;
+            }
+        }
 
+        if (previousSessionId) {
+            const disconnected = room.disconnectedUsers.get(previousSessionId)!;
+            clearTimeout(disconnected.timer);
+            room.disconnectedUsers.delete(previousSessionId);
+
+            // Map NEW sessionId to the user
+            // (Note: The Room class tracks clients by object reference and usernames map,
+            // but for rejoining we just treat them as a new active client with the same username)
             room.addClient(socket, username);
 
             room.broadcast({
@@ -85,6 +101,7 @@ class RoomManager {
                 role: room.getRole(socket.sessionId),
                 sessionId: socket.sessionId,
                 reconnected: true,
+                history: room.history,
                 expiresAt: room.expiresAt
             };
         }
@@ -225,7 +242,10 @@ class RoomManager {
 
     public broadcast(roomId: string, payload: BroadcastPayload): void {
         const room = this.rooms.get(roomId);
-        if (room) room.broadcast(payload);
+        if (room) {
+            room.addToHistory(payload);
+            room.broadcast(payload);
+        }
     }
 
     public sendToUser(ws: WebSocket, payload: BroadcastPayload): void {

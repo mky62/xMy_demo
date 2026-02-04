@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { nanoid } from "nanoid";
-import baseLogo from "../assets/base_logo.svg";
+import baseLogo from "../assets/logo.png";
 import heroImg from "../assets/heroimgfn.jpg";
 import { inMemorySession } from "../tempStorage/globalSession";
 

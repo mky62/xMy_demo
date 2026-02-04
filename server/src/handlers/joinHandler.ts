@@ -40,8 +40,9 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
         userCount: number;
         users: string[];
         role: 'owner' | 'participant';
-        sessionId: string;
         reconnected?: boolean;
+        sessionId: string;
+        history: any[];
         expiresAt: number;
     };
     try {
@@ -56,7 +57,7 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
         return;
     }
 
-    const { owner, userCount, users, role, sessionId } = result;
+    const { owner, userCount, users, role, sessionId, history } = result;
 
     // Send authoritative join confirmation to user
     roomManager.sendToUser(ws, {
@@ -65,6 +66,7 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
         username: payload.username,
         userCount,
         users,
+        history,
         owner,
         role,
         sessionId,

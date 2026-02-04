@@ -86,6 +86,12 @@ function ChatView() {
         setRole(data.role);
         setUserCount(data.userCount);
         if (data.users) setUsers(data.users);
+
+        // Handle History - Fixed: use dispatch instead of setMessages
+        if (data.history && Array.isArray(data.history)) {
+          dispatch({ type: "SET_HISTORY", payload: data.history });
+        }
+
         setJoinConfirmed(true);
         if (data.reconnected) {
           console.log("Successfully reconnected to room");
