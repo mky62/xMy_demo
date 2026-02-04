@@ -38,6 +38,7 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
     let result: {
         owner: string | null;
         userCount: number;
+        users: string[];
         role: 'owner' | 'participant';
         sessionId: string;
         reconnected?: boolean;
@@ -55,7 +56,7 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
         return;
     }
 
-    const { owner, userCount, role, sessionId } = result;
+    const { owner, userCount, users, role, sessionId } = result;
 
     // Send authoritative join confirmation to user
     roomManager.sendToUser(ws, {
@@ -63,6 +64,7 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
         roomId: payload.roomId,
         username: payload.username,
         userCount,
+        users,
         owner,
         role,
         sessionId,
@@ -76,6 +78,7 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
         type: "SYSTEM",
         text: `${payload.username} joined the room`,
         userCount,
+        users,
         owner,
     });
 }

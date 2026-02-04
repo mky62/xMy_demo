@@ -23,6 +23,7 @@ class RoomManager {
     public joinRoom(roomId: string, username: string, ws: WebSocket): {
         owner: string | null;
         userCount: number;
+        users: string[];
         role: 'owner' | 'participant';
         sessionId: string;
         expiresAt: number;
@@ -39,6 +40,7 @@ class RoomManager {
         return {
             owner: room.owner,
             userCount: room.clients.size,
+            users: Array.from(room.usernames.values()),
             role: room.getRole(socket.sessionId),
             sessionId: socket.sessionId,
             expiresAt: room.expiresAt
@@ -48,6 +50,7 @@ class RoomManager {
     public reconnectSession(roomId: string, username: string, ws: WebSocket): {
         owner: string | null;
         userCount: number;
+        users: string[];
         role: 'owner' | 'participant';
         sessionId: string;
         reconnected: boolean;
@@ -70,13 +73,16 @@ class RoomManager {
             room.broadcast({
                 type: "SYSTEM",
                 text: `${username} reconnected`,
+                text: `${username} reconnected`,
                 userCount: room.clients.size,
+                users: Array.from(room.usernames.values()),
                 owner: room.owner,
             });
 
             return {
                 owner: room.owner,
                 userCount: room.clients.size,
+                users: Array.from(room.usernames.values()),
                 role: room.getRole(socket.sessionId),
                 sessionId: socket.sessionId,
                 reconnected: true,
@@ -113,6 +119,7 @@ class RoomManager {
             type: "SYSTEM",
             text: `${socket.username} disconnected`,
             userCount: room.clients.size,
+            users: Array.from(room.usernames.values()),
             owner: room.owner,
         });
     }
@@ -145,6 +152,7 @@ class RoomManager {
         const result = {
             owner: newOwner,
             userCount: room.clients.size,
+            users: Array.from(room.usernames.values()),
             username: socket.username
         };
 
