@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import logo from '../../assets/chatlogo.svg';
+import { useNavigate } from "react-router-dom";
 
 interface ChatTopProps {
   roomId: string;
   userCount: number;
+  expiresAt?: number | null;
 }
 
-function ChatTop({ roomId, userCount, expiresAt }: ChatTopProps & { expiresAt?: number | null }) {
+function ChatTop({ roomId, userCount, expiresAt }: ChatTopProps) {
+  const navigate = useNavigate();
   const [copied, setCopied] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isLowTime, setIsLowTime] = useState<boolean>(false);
@@ -21,6 +24,12 @@ function ChatTop({ roomId, userCount, expiresAt }: ChatTopProps & { expiresAt?: 
       if (diff <= 0) {
         setTimeLeft("00:00");
         setIsLowTime(true);
+        clearInterval(interval);
+
+        // Redirect to home after timer expires
+        setTimeout(() => {
+          navigate('/'); // or whatever your home route is
+        }, 1000); // 1 second delay so user sees 00:00
         return;
       }
 

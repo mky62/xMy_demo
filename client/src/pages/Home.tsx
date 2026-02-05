@@ -4,6 +4,8 @@ import { nanoid } from "nanoid";
 import baseLogo from "../assets/logo.png";
 import heroImg from "../assets/heroimgfn.jpg";
 import { inMemorySession } from "../tempStorage/globalSession";
+import { ShieldCheck, Clock, Users, RefreshCcw } from "lucide-react";
+
 
 // Constants
 const USERNAME_PRESETS = [
@@ -133,6 +135,18 @@ export default function Home() {
     };
   }, [state.alias, state.isGenerating]);
 
+  function TrustItem({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+    return (
+      <div className="flex items-start gap-3 rounded-lg bg-white/40 p-4 backdrop-blur-md">
+        <div className="mt-0.5 text-emerald-800">{icon}</div>
+        <div>
+          <div className="font-medium">{title}</div>
+          <div className="text-xs opacity-80">{desc}</div>
+        </div>
+      </div>
+    );
+  }
+
   // Handlers
   function handleGenerateAlias() {
     dispatch({ type: "GENERATE_ALIAS_START" });
@@ -190,7 +204,7 @@ export default function Home() {
   const canContinue = state.alias && !state.isGenerating;
 
   return (
-    <div className="min-h-screen paper-terminal terminal-text bg-[linear-gradient(192deg,_rgba(12,130,247,1)_0%,_rgba(87,199,133,1)_50%,_rgba(237,221,83,1)_100%)] text-[#0a0a0a] font-mono relative">
+    <div className="min-h-screen pb-20 md:pb-0 paper-terminal terminal-text bg-[linear-gradient(192deg,_rgba(12,130,247,1)_0%,_rgba(87,199,133,1)_50%,_rgba(237,221,83,1)_100%)] text-[#0a0a0a] font-mono relative">
       {/* Visual layers */}
       <div className="pulsar pulsar-top-right" />
       <div className="pulsar pulsar-bottom-left" />
@@ -214,7 +228,7 @@ export default function Home() {
         </header>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 py-14 flex flex-col md:flex-row items-start gap-14">
+      <div className="relative z-10 max-w-4xl mx-auto px-6 py-14 flex flex-col md:flex-row items-start gap-12">
         {/* Narrative */}
         <section
           className="flex-1 relative w-full min-h-[400px] md:h-[600px] lg:h-[400px] overflow-hidden rounded-xl"
@@ -287,7 +301,6 @@ export default function Home() {
                 </div>
 
                 <div className="mt-2 flex justify-between text-xs text-[#6b6b6b]">
-                  <span>system-generated alias</span>
                   <button
                     onClick={handleGenerateAlias}
                     className="underline hover:text-black focus:outline-none focus:text-black"
@@ -344,7 +357,7 @@ export default function Home() {
                   type="text"
                   value={state.roomId}
                   onChange={(e) => handleRoomIdChange(e.target.value)}
-                  onKeyPress={handleRoomIdKeyPress}
+                  onKeyDown={handleRoomIdKeyPress}
                   placeholder="session id"
                   disabled={state.isNavigating}
                   className="
@@ -382,6 +395,32 @@ export default function Home() {
             </>
           )}
         </section>
+      </div>
+      <div className="mt-16 ml-16 grid max-w-xl grid-cols-2 gap-4 text-sm text-emerald-950">
+
+        <TrustItem
+          icon={<Clock size={18} />}
+          title="15-Minute Session TTL"
+          desc="Automatic expiry with renewal support"
+        />
+
+        <TrustItem
+          icon={<Users size={18} />}
+          title="High Concurrency"
+          desc="Designed for thousands of active users"
+        />
+
+        <TrustItem
+          icon={<RefreshCcw size={18} />}
+          title="Session Migration"
+          desc="Seamless handoff across sessions"
+        />
+
+        <TrustItem
+          icon={<ShieldCheck size={18} />}
+          title="Real-Time Sync"
+          desc="SSE-based state consistency"
+        />
       </div>
     </div>
   );

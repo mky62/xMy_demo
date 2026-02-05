@@ -12,7 +12,6 @@ export class Room {
     public clients: Set<CustomWebSocket> = new Set();
     public mutedUsers: Set<string> = new Set();
     public usernames: Map<string, string> = new Map();
-    public usernames: Map<string, string> = new Map();
     public disconnectedUsers: Map<string, DisconnectedUserInfo> = new Map();
     public history: BroadcastPayload[] = [];
 
