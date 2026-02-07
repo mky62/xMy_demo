@@ -115,7 +115,7 @@ export default function Home() {
 
     // 2. Prevent default scroll events
     const preventDefault = (e: Event) => e.preventDefault();
-    
+
     // Options for passive: false to allow preventDefault
     const options = { passive: false };
 
@@ -266,7 +266,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
 
             {/* Foreground content */}
-            <div className="relative z-10 p-6 space-y-4 md:space-y-6 max-w-xl flex flex-col justify-end h-full">
+            <div className="relative z-10 p-8 space-y-8 md:space-y-8 max-w-xl flex flex-col justify-end h-full">
               <div className="text-xs uppercase underline tracking-wider text-gray-300">
                 system notice
               </div>
