@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import logo from '../../assets/chatlogo.svg';
 import { useNavigate } from "react-router-dom";
+import { Users, Menu } from "lucide-react";
 
 interface ChatTopProps {
   roomId: string;
   userCount: number;
   expiresAt?: number | null;
+  onToggleSidebar?: () => void;
 }
 
-function ChatTop({ roomId, userCount, expiresAt }: ChatTopProps) {
+function ChatTop({ roomId, userCount, expiresAt, onToggleSidebar }: ChatTopProps) {
   const navigate = useNavigate();
   const [copied, setCopied] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
@@ -87,12 +89,26 @@ function ChatTop({ roomId, userCount, expiresAt }: ChatTopProps) {
       )}
 
       {/* Right: User Count Badge */}
-      <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 border border-slate-600/50 bg-slate-800/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md">
+      <div 
+        className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 border border-slate-600/50 bg-slate-800/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md cursor-pointer lg:cursor-default hover:bg-slate-700/50 lg:hover:bg-slate-800/50 transition-colors"
+        onClick={onToggleSidebar}
+      >
         <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full animate-pulse" />
         <span className="text-[10px] sm:text-xs font-bold text-indigo-100 tracking-tighter">
           {userCount} <span className="hidden sm:inline">inside</span>
         </span>
       </div>
+
+      {/* Mobile Menu Button - separate if needed, but clicking the count is intuitive enough? 
+          Actually, let's add an explicit menu button for better UX as requested "accessible via touch gestures" 
+      */}
+      <button
+        onClick={onToggleSidebar}
+        className="lg:hidden p-1.5 sm:p-2 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-md transition-colors -mr-1"
+        aria-label="Toggle members list"
+      >
+        <Menu size={20} />
+      </button>
 
       {/* Notification */}
       {copied && (

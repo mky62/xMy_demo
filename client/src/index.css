@@ -130,3 +130,27 @@
         opacity: 0.9;
     }
 }
+
+/* ===== Custom Utilities ===== */
+.bg-brand-gradient {
+    background: linear-gradient(192deg, rgba(12,130,247,1) 0%, rgba(87,199,133,1) 50%, rgba(237,221,83,1) 100%);
+}
+
+/* ===== Desktop Scroll Lock ===== */
+@media (min-width: 1024px) {
+    html:not(.scroll-enabled),
+    body:not(.scroll-enabled) {
+        overflow: hidden;
+    }
+}
+
+/* Scroll Toggle Override */
+.scroll-enabled {
+    overflow: auto !important;
+}
+
+/* ===== Strict Home Page Lock ===== */
+.home-lock {
+    overflow: hidden !important;
+    touch-action: none;
+}

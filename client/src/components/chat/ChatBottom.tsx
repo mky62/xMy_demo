@@ -57,7 +57,7 @@ function ChatBottom({
         value={message}
         placeholder="Type a message…"
         className="grow bg-neutral-800 text-neutral-100 placeholder-neutral-400
-                   rounded-full px-4 py-2 text-sm
+                   rounded-full px-4 py-2 text-base sm:text-sm
                    focus:outline-none focus:ring-2 focus:ring-amber-400"
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={handleKeyDown}
@@ -67,7 +67,7 @@ function ChatBottom({
         onClick={handleSend}
         disabled={!message.trim() || !canSend}
         className="flex items-center justify-center
-                   h-10 w-10 rounded-full
+                   h-11 w-11 rounded-full
                    bg-amber-400 hover:bg-amber-500
                    disabled:bg-neutral-500 disabled:cursor-not-allowed
                    transition"

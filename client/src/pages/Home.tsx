@@ -4,17 +4,11 @@ import { nanoid } from "nanoid";
 import baseLogo from "../assets/logo.png";
 import heroImg from "../assets/heroimgfn.jpg";
 import { inMemorySession } from "../tempStorage/globalSession";
-import { ShieldCheck, Clock, Users, RefreshCcw } from "lucide-react";
+import { ShieldCheck, Clock, RefreshCcw } from "lucide-react";
 
 
 // Constants
-const USERNAME_PRESETS = [
-  "ShadowWhisper",
-  "CyberPhantom",
-  "NeonGhost",
-  "VoidWalker",
-  "EchoHunter",
-] as const;
+import { USERNAME_PRESETS } from "../utils/presets";
 
 const ALIAS_GENERATION_DELAY = 300;
 const SETTLE_ANIMATION_DURATION = 200;
@@ -113,6 +107,31 @@ export default function Home() {
     isNavigating: false,
   });
 
+  // Strict scroll disabling effect
+  useEffect(() => {
+    // 1. Add class to html and body
+    document.documentElement.classList.add('home-lock');
+    document.body.classList.add('home-lock');
+
+    // 2. Prevent default scroll events
+    const preventDefault = (e: Event) => e.preventDefault();
+    
+    // Options for passive: false to allow preventDefault
+    const options = { passive: false };
+
+    window.addEventListener('wheel', preventDefault, options);
+    window.addEventListener('touchmove', preventDefault, options);
+    window.addEventListener('scroll', preventDefault, options);
+
+    return () => {
+      document.documentElement.classList.remove('home-lock');
+      document.body.classList.remove('home-lock');
+      window.removeEventListener('wheel', preventDefault);
+      window.removeEventListener('touchmove', preventDefault);
+      window.removeEventListener('scroll', preventDefault);
+    };
+  }, []);
+
   // Generate initial alias
   useEffect(() => {
     handleGenerateAlias();
@@ -137,11 +156,11 @@ export default function Home() {
 
   function TrustItem({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
     return (
-      <div className="flex items-start gap-3 rounded-lg bg-white/40 p-4 backdrop-blur-md">
-        <div className="mt-0.5 text-emerald-800">{icon}</div>
+      <div className="flex items-center gap-3 rounded-xl border border-[#d6d4cc]/50 bg-[#faf9f6]/80 p-4 backdrop-blur-md shadow-sm transition-all hover:bg-[#faf9f6]/95">
+        <div className="text-black/70">{icon}</div>
         <div>
-          <div className="font-medium">{title}</div>
-          <div className="text-xs opacity-80">{desc}</div>
+          <div className="font-bold text-sm text-[#0a0a0a] uppercase tracking-wide">{title}</div>
+          <div className="text-xs text-[#6b6b6b]">{desc}</div>
         </div>
       </div>
     );
@@ -204,15 +223,15 @@ export default function Home() {
   const canContinue = state.alias && !state.isGenerating;
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0 paper-terminal terminal-text bg-[linear-gradient(192deg,_rgba(12,130,247,1)_0%,_rgba(87,199,133,1)_50%,_rgba(237,221,83,1)_100%)] text-[#0a0a0a] font-mono relative">
+    <div className="h-dvh flex flex-col paper-terminal terminal-text bg-brand-gradient text-[#0a0a0a] font-mono relative overflow-hidden">
       {/* Visual layers */}
       <div className="pulsar pulsar-top-right" />
       <div className="pulsar pulsar-bottom-left" />
 
-      <div className="relative z-10">
+      <div className="relative z-10 shrink-0">
         {/* Header */}
         <header className="border-b border-[#d6d4cc]">
-          <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-3">
+          <div className="max-w-4xl mx-auto px-4 md:px-6 py-4 flex items-center gap-3">
             <img
               src={baseLogo}
               alt="xMy secure chat"
@@ -228,186 +247,182 @@ export default function Home() {
         </header>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 py-14 flex flex-col md:flex-row items-start gap-12">
-        {/* Narrative */}
-        <section
-          className="flex-1 relative w-full min-h-[400px] md:h-[600px] lg:h-[400px] overflow-hidden rounded-xl"
-          aria-labelledby="hero-heading"
-        >
-          {/* Background image */}
-          <img
-            src={heroImg}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-            role="presentation"
-          />
+      <div className="flex-1 relative z-10 max-w-4xl mx-auto px-6 py-14 flex flex-col justify-center min-h-0 overflow-hidden">
+        <div className="flex flex-col md:flex-row items-stretch gap-12 h-full md:h-auto max-h-full">
+          {/* Narrative */}
+          <section
+            className="flex-1 relative w-full overflow-hidden rounded-xl bg-gray-900 min-h-[200px] md:min-h-[350px] md:h-auto"
+            aria-labelledby="hero-heading"
+          >
+            {/* Background image */}
+            <img
+              src={heroImg}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover opacity-80"
+              role="presentation"
+            />
 
-          {/* Dark overlay for contrast */}
-          <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+            {/* Dark overlay for contrast */}
+            <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
 
-          {/* Foreground content */}
-          <div className="relative z-10 p-8 space-y-6 max-w-xl">
-            <div className="text-xs uppercase underline tracking-wider text-gray-300">
-              system notice
+            {/* Foreground content */}
+            <div className="relative z-10 p-6 space-y-4 md:space-y-6 max-w-xl flex flex-col justify-end h-full">
+              <div className="text-xs uppercase underline tracking-wider text-gray-300">
+                system notice
+              </div>
+
+              <h2 id="hero-heading" className="text-xl md:text-2xl text-white">
+                Anonymous session interface.
+                <br />
+                No persistence. No recovery.
+              </h2>
+
+              <p className="text-sm text-[#b0b0b0]">
+                Identity is system-generated. No user-controlled identifiers.
+              </p>
             </div>
+          </section>
 
-            <h2 id="hero-heading" className="text-2xl text-white">
-              Anonymous session interface.
-              <br />
-              No persistence. No recovery.
+          {/* Terminal */}
+          <section
+            className="flex-1 border border-[#d6d4cc] bg-[#faf9f6] p-6 md:p-8 space-y-6 flex flex-col justify-center"
+            aria-labelledby="terminal-heading"
+          >
+            <h2 id="terminal-heading" className="sr-only">
+              {state.phase === "identity" ? "Identity Generation" : "Session Control"}
             </h2>
 
-            <p className="text-sm text-[#b0b0b0]">
-              Identity is system-generated. No user-controlled identifiers.
-            </p>
-          </div>
-        </section>
+            {/* Error display */}
+            {state.error && (
+              <div
+                role="alert"
+                className="px-3 py-2 border border-red-600 bg-red-50 text-red-800 text-sm"
+              >
+                {state.error}
+              </div>
+            )}
 
-        {/* Terminal */}
-        <section
-          className="flex-1 border border-[#d6d4cc] bg-[#faf9f6] p-8 space-y-8"
-          aria-labelledby="terminal-heading"
-        >
-          <h2 id="terminal-heading" className="sr-only">
-            {state.phase === "identity" ? "Identity Generation" : "Session Control"}
-          </h2>
+            {state.phase === "identity" && (
+              <>
+                <div>
+                  <label htmlFor="alias-display" className="text-xs uppercase tracking-wider mb-2 block">
+                    identity
+                  </label>
 
-          {/* Error display */}
-          {state.error && (
-            <div
-              role="alert"
-              className="px-3 py-2 border border-red-600 bg-red-50 text-red-800 text-sm"
-            >
-              {state.error}
-            </div>
-          )}
-
-          {state.phase === "identity" && (
-            <>
-              <div>
-                <label htmlFor="alias-display" className="text-xs uppercase tracking-wider mb-2 block">
-                  identity
-                </label>
-
-                <div
-                  id="alias-display"
-                  className={`terminal-output ${state.isSettling ? "paper-settle" : ""}`}
-                  role="status"
-                  aria-live="polite"
-                  aria-atomic="true"
-                >
-                  {state.alias || "— initializing identity —"}
-                  {state.isGenerating && <span className="cursor" aria-label="generating" />}
-                </div>
-
-                <div className="mt-2 flex justify-between text-xs text-[#6b6b6b]">
-                  <button
-                    onClick={handleGenerateAlias}
-                    className="underline hover:text-black focus:outline-none focus:text-black"
-                    disabled={state.isGenerating}
-                    aria-label="Regenerate identity alias"
+                  <div
+                    id="alias-display"
+                    className={`terminal-output ${state.isSettling ? "paper-settle" : ""}`}
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
                   >
-                    regenerate
-                  </button>
+                    {state.alias || "— initializing identity —"}
+                    {state.isGenerating && <span className="cursor" aria-label="generating" />}
+                  </div>
+
+                  <div className="mt-2 flex justify-between text-xs text-[#6b6b6b]">
+                    <button
+                      onClick={handleGenerateAlias}
+                      className="underline hover:text-black focus:outline-none focus:text-black"
+                      disabled={state.isGenerating}
+                      aria-label="Regenerate identity alias"
+                    >
+                      regenerate
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <button
-                onClick={handleContinueToSession}
-                disabled={!canContinue}
-                className="
-                  w-full h-11
-                  border border-black
-                  uppercase tracking-wider
-                  hover:bg-black hover:text-[#f7f6f2]
-                  focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
-                  disabled:opacity-40 disabled:cursor-not-allowed
-                  transition-colors
-                "
-                aria-label="Continue to session creation"
-              >
-                continue →
-              </button>
-            </>
-          )}
-
-          {state.phase === "session" && (
-            <>
-              <div className="text-xs uppercase tracking-wider">session control</div>
-
-              <button
-                onClick={handleCreateSession}
-                disabled={state.isNavigating}
-                className="w-full h-11 border border-black uppercase tracking-wider hover:bg-black hover:text-[#f7f6f2] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-40 transition-colors"
-                aria-label="Create new chat session"
-              >
-                {state.isNavigating ? "creating session..." : "create new session"}
-              </button>
-
-              <div className="text-center text-xs text-[#6b6b6b]" aria-hidden="true">
-                — or join existing —
-              </div>
-
-              <div>
-                <label htmlFor="room-id-input" className="sr-only">
-                  Session ID
-                </label>
-                <input
-                  id="room-id-input"
-                  type="text"
-                  value={state.roomId}
-                  onChange={(e) => handleRoomIdChange(e.target.value)}
-                  onKeyDown={handleRoomIdKeyPress}
-                  placeholder="session id"
-                  disabled={state.isNavigating}
+                <button
+                  onClick={handleContinueToSession}
+                  disabled={!canContinue}
                   className="
-                    w-full h-10 px-2
-                    bg-[#f0efe9]
-                    border border-[#d6d4cc]
-                    focus:outline-none focus:ring-2 focus:ring-black focus:border-black
-                    disabled:opacity-40
+                    w-full h-11
+                    border border-black
+                    uppercase tracking-wider
+                    hover:bg-black hover:text-[#f7f6f2]
+                    focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
+                    disabled:opacity-40 disabled:cursor-not-allowed
+                    transition-colors
                   "
-                  aria-describedby="room-id-help"
-                  maxLength={MAX_ROOM_ID_LENGTH}
-                />
-                <div id="room-id-help" className="sr-only">
-                  Enter the session ID to join an existing chat room
+                  aria-label="Continue to session creation"
+                >
+                  continue →
+                </button>
+              </>
+            )}
+
+            {state.phase === "session" && (
+              <>
+                <div className="text-xs uppercase tracking-wider">session control</div>
+
+                <button
+                  onClick={handleCreateSession}
+                  disabled={state.isNavigating}
+                  className="w-full h-11 border border-black uppercase tracking-wider hover:bg-black hover:text-[#f7f6f2] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-40 transition-colors"
+                  aria-label="Create new chat session"
+                >
+                  {state.isNavigating ? "creating session..." : "create new session"}
+                </button>
+
+                <div className="text-center text-xs text-[#6b6b6b]" aria-hidden="true">
+                  — or join existing —
                 </div>
-              </div>
 
-              <button
-                onClick={handleJoinSession}
-                disabled={state.isNavigating}
-                className="w-full h-11 border border-[#6b6b6b] uppercase tracking-wider hover:border-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-40 transition-colors"
-                aria-label="Join existing session"
-              >
-                {state.isNavigating ? "joining session..." : "join session"}
-              </button>
+                <div>
+                  <label htmlFor="room-id-input" className="sr-only">
+                    Session ID
+                  </label>
+                  <input
+                    id="room-id-input"
+                    type="text"
+                    value={state.roomId}
+                    onChange={(e) => handleRoomIdChange(e.target.value)}
+                    onKeyDown={handleRoomIdKeyPress}
+                    placeholder="session id"
+                    disabled={state.isNavigating}
+                    className="
+                      w-full h-10 px-2
+                      bg-[#f0efe9]
+                      border border-[#d6d4cc]
+                      focus:outline-none focus:ring-2 focus:ring-black focus:border-black
+                      disabled:opacity-40
+                    "
+                    aria-describedby="room-id-help"
+                    maxLength={MAX_ROOM_ID_LENGTH}
+                  />
+                  <div id="room-id-help" className="sr-only">
+                    Enter the session ID to join an existing chat room
+                  </div>
+                </div>
 
-              <button
-                onClick={handleBackToIdentity}
-                disabled={state.isNavigating}
-                className="text-xs underline text-[#6b6b6b] hover:text-black focus:outline-none focus:text-black disabled:opacity-40"
-                aria-label="Go back to regenerate identity"
-              >
-                ← regenerate identity
-              </button>
-            </>
-          )}
-        </section>
+                <button
+                  onClick={handleJoinSession}
+                  disabled={state.isNavigating}
+                  className="w-full h-11 border border-[#6b6b6b] uppercase tracking-wider hover:border-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-40 transition-colors"
+                  aria-label="Join existing session"
+                >
+                  {state.isNavigating ? "joining session..." : "join session"}
+                </button>
+
+                <button
+                  onClick={handleBackToIdentity}
+                  disabled={state.isNavigating}
+                  className="text-xs underline text-[#6b6b6b] hover:text-black focus:outline-none focus:text-black disabled:opacity-40"
+                  aria-label="Go back to regenerate identity"
+                >
+                  ← regenerate identity
+                </button>
+              </>
+            )}
+          </section>
+        </div>
       </div>
-      <div className="mt-16 ml-16 grid max-w-xl grid-cols-2 gap-4 text-sm text-emerald-950">
 
+      <div className="relative z-10 shrink-0 max-w-4xl mx-auto px-4 md:px-6 pb-6 md:pb-8 grid grid-cols-1 md:grid-cols-3 gap-4 hidden md:grid">
         <TrustItem
           icon={<Clock size={18} />}
           title="15-Minute Session TTL"
           desc="Automatic expiry with renewal support"
-        />
-
-        <TrustItem
-          icon={<Users size={18} />}
-          title="High Concurrency"
-          desc="Designed for thousands of active users"
         />
 
         <TrustItem

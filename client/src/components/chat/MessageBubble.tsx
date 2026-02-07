@@ -24,7 +24,7 @@ const MessageBubble = React.memo(function MessageBubble({
   return (
     <div className={`flex ${isSelf ? "justify-end" : "justify-start"}`}>
       <div
-        className={`relative max-w-xs rounded-lg px-6 py-2 ${
+        className={`relative max-w-[85%] sm:max-w-xs rounded-lg px-6 py-2 ${
           isSelf ? "bg-blue-500 text-white" : "bg-white text-black"
         }`}
       >
@@ -32,9 +32,10 @@ const MessageBubble = React.memo(function MessageBubble({
           <button
             onClick={onContextMenu}
             onContextMenu={onContextMenu}
-            className="absolute top-2 right-1"
+            className="absolute top-1 right-1 p-2 opacity-70 hover:opacity-100 transition-opacity"
+            aria-label="Message options"
           >
-            <MoreVertical size={14} />
+            <MoreVertical size={16} />
           </button>
         )}
 

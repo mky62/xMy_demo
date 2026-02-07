@@ -28,6 +28,7 @@ function ChatView() {
   const [role, setRole] = useState<'owner' | 'participant' | null>(null);
   const [joinConfirmed, setJoinConfirmed] = useState<boolean>(false);
   const [users, setUsers] = useState<string[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   const { roomId } = useParams<{ roomId: string }>();
   const { state } = useLocation() as { state: LocationState | null };
@@ -177,7 +178,7 @@ function ChatView() {
     <div className="relative h-dvh w-full overflow-hidden">
       {/* Full-screen Background with Gradient */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-[#cfa913] bg-[linear-gradient(192deg,_rgba(12,130,247,1)_0%,_rgba(87,199,133,1)_50%,_rgba(237,221,83,1)_100%)]"
+        className="absolute inset-0 bg-cover bg-center bg-[#cfa913] bg-brand-gradient"
       />
 
       {/* Pulsars - positioned on full screen */}
@@ -187,10 +188,22 @@ function ChatView() {
       {/* Grid Layout: Left Sidebar - Chat - Right Empty */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_42rem_1fr] h-full">
 
+        {/* Mobile Overlay */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
         {/* User List Sidebar (Left Column) */}
-        <div className="hidden lg:flex flex-col p-4 pt-16 pb-16 pl-6 h-full min-w-0">
-          <div className="w-full h-full bg-black/20  border border-white/40 rounded-xl p-4 overflow-y-auto">
-            <h3 className="text-[16px] uppercase tracking-wider text-cyan-400 mb-4 font-mono sticky top-0">
+        <div className={`
+          fixed inset-y-0 left-0 z-50 w-3/4 max-w-xs bg-slate-900/95 backdrop-blur-xl border-r border-white/10 transition-transform duration-300 ease-in-out lg:translate-x-0 
+          ${isSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}
+          lg:static lg:flex lg:flex-col lg:bg-transparent lg:border-none lg:shadow-none lg:w-auto lg:h-full lg:min-w-0 lg:p-4 lg:pt-16 lg:pb-16 lg:pl-6
+        `}>
+          <div className="w-full h-full p-4 overflow-y-auto lg:bg-black/20 lg:border lg:border-white/40 lg:rounded-xl">
+            <h3 className="text-[16px] uppercase tracking-wider text-cyan-400 mb-4 font-mono sticky top-0 bg-slate-900/95 lg:bg-transparent pb-2 z-10">
               ROOM MEMBERS
             </h3>
             <div className="space-y-2">
@@ -208,7 +221,12 @@ function ChatView() {
 
         {/* Chat Container (Center Column) */}
         <div className="w-full h-full flex flex-col border bg-gray-600/20 border-gray-500 min-w-0">
-          <ChatTop roomId={roomId} userCount={userCount} expiresAt={roomExpiry} />
+          <ChatTop 
+            roomId={roomId} 
+            userCount={userCount} 
+            expiresAt={roomExpiry} 
+            onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
+          />
 
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {!joinConfirmed ? (
