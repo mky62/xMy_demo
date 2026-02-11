@@ -5,6 +5,7 @@ import {
     RoomState,
     DisconnectedUserInfo
 } from "../types/room.js";
+import { messageService } from "../services/messageService.js";
 
 export class Room {
     public readonly id: string;
@@ -13,7 +14,7 @@ export class Room {
     public mutedUsers: Set<string> = new Set();
     public usernames: Map<string, string> = new Map();
     public disconnectedUsers: Map<string, DisconnectedUserInfo> = new Map();
-    public history: BroadcastPayload[] = [];
+    // history is now stored in Redis, not in memory
 
     public state: RoomState = 'active';
     public readonly createdAt: number;
@@ -44,13 +45,11 @@ export class Room {
         }
     }
 
-    public addToHistory(payload: BroadcastPayload): void {
-        // Only store chat messages
-        if (payload.type === 'CHAT_MESSAGE') {
-            this.history.push(payload);
-            if (this.history.length > 50) {
-                this.history.shift();
-            }
+    public async addToHistory(payload: BroadcastPayload): Promise<void> {
+        // Only store MESSAGE type messages in Redis
+        if (payload.type === 'MESSAGE') {
+            const ttlSeconds = Math.floor((this.expiresAt - Date.now()) / 1000);
+            await messageService.saveMessage(this.id, payload, ttlSeconds);
         }
     }
 

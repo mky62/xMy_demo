@@ -9,7 +9,7 @@ interface JoinPayload {
     sessionId?: string; // Client should include their sessionId
 }
 
-export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
+export async function handleJoin(ws: WebSocket, payload: JoinPayload): Promise<void> {
     if (!payload.roomId || !payload.username) {
         return;
     }
@@ -46,7 +46,7 @@ export function handleJoin(ws: WebSocket, payload: JoinPayload): void {
         expiresAt: number;
     };
     try {
-        result = roomManager.reconnectSession(payload.roomId, payload.username, ws);
+        result = await roomManager.reconnectSession(payload.roomId, payload.username, ws);
     }
     catch (err) {
         const errorMessage = err instanceof Error ? err.message : "unknown error";

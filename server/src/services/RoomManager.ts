@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import { nanoid } from "nanoid";
 import { CustomWebSocket, BroadcastPayload } from "../types/room.js";
 import { Room } from "../models/Room.js";
+import { messageService } from "./messageService.js";
 
 class RoomManager {
     public rooms: Map<string, Room> = new Map();
@@ -20,7 +21,7 @@ class RoomManager {
         return room;
     }
 
-    public joinRoom(roomId: string, username: string, ws: WebSocket): {
+    public async joinRoom(roomId: string, username: string, ws: WebSocket): Promise<{
         owner: string | null;
         userCount: number;
         users: string[];
@@ -28,7 +29,7 @@ class RoomManager {
         sessionId: string;
         history: BroadcastPayload[];
         expiresAt: number;
-    } {
+    }> {
         const socket = ws as CustomWebSocket;
         const room = this.getOrCreateRoom(roomId, socket.sessionId);
 
@@ -38,18 +39,21 @@ class RoomManager {
 
         room.addClient(socket, username);
 
+        // Fetch message history from Redis
+        const history = await messageService.getMessages(roomId);
+
         return {
             owner: room.owner,
             userCount: room.clients.size,
             users: Array.from(room.usernames.values()),
             role: room.getRole(socket.sessionId),
             sessionId: socket.sessionId,
-            history: room.history,
+            history,
             expiresAt: room.expiresAt
         };
     }
 
-    public reconnectSession(roomId: string, username: string, ws: WebSocket): {
+    public async reconnectSession(roomId: string, username: string, ws: WebSocket): Promise<{
         owner: string | null;
         userCount: number;
         users: string[];
@@ -58,12 +62,12 @@ class RoomManager {
         reconnected: boolean;
         history: BroadcastPayload[];
         expiresAt: number;
-    } {
+    }> {
         const socket = ws as CustomWebSocket;
         const room = this.rooms.get(roomId);
 
         if (!room || room.state === 'destroyed') {
-            return { ...this.joinRoom(roomId, username, ws), reconnected: false };
+            return { ...await this.joinRoom(roomId, username, ws), reconnected: false };
         }
 
         // Reconnection Logic: Find disconnected session by USERNAME
@@ -94,6 +98,9 @@ class RoomManager {
                 owner: room.owner,
             });
 
+            // Fetch message history from Redis
+            const history = await messageService.getMessages(roomId);
+
             return {
                 owner: room.owner,
                 userCount: room.clients.size,
@@ -101,12 +108,12 @@ class RoomManager {
                 role: room.getRole(socket.sessionId),
                 sessionId: socket.sessionId,
                 reconnected: true,
-                history: room.history,
+                history,
                 expiresAt: room.expiresAt
             };
         }
 
-        return { ...this.joinRoom(roomId, username, ws), reconnected: false };
+        return { ...await this.joinRoom(roomId, username, ws), reconnected: false };
     }
 
     public markDisconnected(roomId: string, ws: WebSocket): void {
@@ -175,6 +182,10 @@ class RoomManager {
         if (room.clients.size === 0 && room.disconnectedUsers.size === 0) {
             if (room.state !== 'destroyed') {
                 room.state = 'destroyed';
+                // Clean up messages from Redis
+                messageService.deleteRoomMessages(roomId).catch(err =>
+                    console.error('Error deleting room messages:', err)
+                );
                 this.rooms.delete(roomId);
             }
         }
@@ -243,7 +254,10 @@ class RoomManager {
     public broadcast(roomId: string, payload: BroadcastPayload): void {
         const room = this.rooms.get(roomId);
         if (room) {
-            room.addToHistory(payload);
+            // Save to Redis (async, don't wait)
+            room.addToHistory(payload).catch(err =>
+                console.error('Error saving message to Redis:', err)
+            );
             room.broadcast(payload);
         }
     }

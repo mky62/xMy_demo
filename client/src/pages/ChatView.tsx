@@ -84,13 +84,17 @@ function ChatView() {
 
       // Handle authoritative join confirmation
       if (data.type === "JOIN_SUCCESS") {
+        console.log("JOIN_SUCCESS received with history:", data.history);
         setRole(data.role);
         setUserCount(data.userCount);
         if (data.users) setUsers(data.users);
 
         // Handle History - Fixed: use dispatch instead of setMessages
         if (data.history && Array.isArray(data.history)) {
+          console.log("SET_HISTORY dispatched with:", data.history.length, "messages");
           dispatch({ type: "SET_HISTORY", payload: data.history });
+        } else {
+          console.log("No history received or history is not an array:", data.history);
         }
 
         setJoinConfirmed(true);
@@ -190,7 +194,7 @@ function ChatView() {
 
         {/* Mobile Overlay */}
         {isSidebarOpen && (
-          <div 
+          <div
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
@@ -221,10 +225,10 @@ function ChatView() {
 
         {/* Chat Container (Center Column) */}
         <div className="w-full h-full flex flex-col border bg-gray-600/20 border-gray-500 min-w-0">
-          <ChatTop 
-            roomId={roomId} 
-            userCount={userCount} 
-            expiresAt={roomExpiry} 
+          <ChatTop
+            roomId={roomId}
+            userCount={userCount}
+            expiresAt={roomExpiry}
             onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
           />
 

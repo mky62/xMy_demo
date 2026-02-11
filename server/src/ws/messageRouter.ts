@@ -21,7 +21,7 @@ export interface MessagePayload {
     [key: string]: any; //allow addtional properties
 }
 
-type MessageHandler = (ws: any, message: any) => void;
+type MessageHandler = (ws: any, message: any) => void | Promise<void>;
 
 const handlers: Record<MessageType, MessageHandler> = {
     "JOIN_ROOM": handleJoin,
@@ -37,14 +37,12 @@ function isMessageType(type: unknown): type is MessageType {
     return typeof type === "string" && type in handlers;
 }
 
-export function routeMessage(ws: ExtendedWebSocket, message: any) {
+export async function routeMessage(ws: ExtendedWebSocket, message: any) {
     const type = message?.type;
     if (!isMessageType(type)) {
         console.warn(`unknown message: ${String(type)}`);
         return;
     }
 
-    handlers[type](ws, message);
+    await handlers[type](ws, message);
 }
-
-

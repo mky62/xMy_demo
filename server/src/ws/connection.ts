@@ -24,7 +24,7 @@ export function handleConnection(ws: WebSocket) {
     sessionId: socket.sessionId
   }));
 
-  socket.on("message", (raw: Buffer) => {
+  socket.on("message", async (raw: Buffer) => {
 
     // console.log("RAW as string:", raw.toString());
 
@@ -36,7 +36,7 @@ export function handleConnection(ws: WebSocket) {
       return;
     }
 
-    routeMessage(socket, msg);
+    await routeMessage(socket, msg);
 
   });
 
