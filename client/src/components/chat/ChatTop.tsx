@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import logo from '../../assets/chatlogo.svg';
 import { useNavigate } from "react-router-dom";
-import { Users, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 
 interface ChatTopProps {
   roomId: string;
@@ -89,7 +89,7 @@ function ChatTop({ roomId, userCount, expiresAt, onToggleSidebar }: ChatTopProps
       )}
 
       {/* Right: User Count Badge */}
-      <div 
+      <div
         className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 border border-slate-600/50 bg-slate-800/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md cursor-pointer lg:cursor-default hover:bg-slate-700/50 lg:hover:bg-slate-800/50 transition-colors"
         onClick={onToggleSidebar}
       >
