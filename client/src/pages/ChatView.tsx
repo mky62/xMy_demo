@@ -1,4 +1,4 @@
-import { useReducer, useState, useEffect } from "react";
+import { useReducer, useState, useEffect, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import ChatTop from "../components/chat/ChatTop";
 import ChatBottom from "../components/chat/ChatBottom";
@@ -21,6 +21,7 @@ interface ContextMenuState {
 }
 
 function ChatView() {
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const [messages, dispatch] = useReducer(chatReducer, []);
   const [userCount, setUserCount] = useState<number>(0);
   const [mutedUsers, setMutedUsers] = useState<Set<string>>(new Set());
@@ -136,6 +137,16 @@ function ChatView() {
     },
   });
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages]);
+
   const handleContextMenu = (e: React.MouseEvent<HTMLButtonElement>, message: ChatMessage): void => {
     e.preventDefault();
     setContextMenu({
@@ -224,7 +235,7 @@ function ChatView() {
         </div>
 
         {/* Chat Container (Center Column) */}
-        <div className="w-full h-full flex flex-col border bg-gray-600/20 border-gray-500 min-w-0">
+        <div className="w-full h-full flex flex-col border bg-gray-600/20 border-gray-500 min-w-0 overflow-hidden">
           <ChatTop
             roomId={roomId}
             userCount={userCount}
@@ -232,7 +243,10 @@ function ChatView() {
             onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
           />
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          <div
+            ref={chatContainerRef}
+            className="flex-1 overflow-y-auto min-h-0 p-4 space-y-2"
+          >
             {!joinConfirmed ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-white text-lg">Joining room...</div>

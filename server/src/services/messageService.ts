@@ -1,5 +1,13 @@
 import redis from './redisClient.js';
 import { BroadcastPayload } from '../types/room.js';
+import crypto from 'crypto';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || ''; // Must be 32 bytes (64 hex characters)
+const IV_LENGTH = 16; // For AES, this is always 16
+
 
 const MESSAGE_LIMIT = 50; // Maximum messages to store per room
 
@@ -9,6 +17,39 @@ export class MessageService {
      */
     private getRoomKey(roomId: string): string {
         return `room:${roomId}:messages`;
+    }
+
+    private encrypt(text: string): string {
+        if (!ENCRYPTION_KEY) return text; // Fallback if no key
+        try {
+            const iv = crypto.randomBytes(IV_LENGTH);
+            const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+            let encrypted = cipher.update(text);
+            encrypted = Buffer.concat([encrypted, cipher.final()]);
+            return iv.toString('hex') + ':' + encrypted.toString('hex');
+        } catch (error) {
+            console.error("Encryption error:", error);
+            return text;
+        }
+    }
+
+    private decrypt(text: string): string {
+        if (!ENCRYPTION_KEY) return text;
+        try {
+            const textParts = text.split(':');
+            if (textParts.length !== 2) return text; // Not encrypted format
+
+            const iv = Buffer.from(textParts[0], 'hex');
+            const encryptedText = Buffer.from(textParts[1], 'hex');
+            const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+            let decrypted = decipher.update(encryptedText);
+            decrypted = Buffer.concat([decrypted, decipher.final()]);
+            return decrypted.toString();
+        } catch (error) {
+            console.error("Decryption error:", error);
+            // Return original text if decryption fails (e.g., legacy unencrypted messages)
+            return text;
+        }
     }
 
     /**
@@ -25,9 +66,10 @@ export class MessageService {
         try {
             const key = this.getRoomKey(roomId);
             const messageStr = JSON.stringify(message);
+            const encryptedMessage = this.encrypt(messageStr);
 
             // Add message to the beginning of the list
-            await redis.lpush(key, messageStr);
+            await redis.lpush(key, encryptedMessage);
 
             // Trim list to keep only the most recent messages
             await redis.ltrim(key, 0, MESSAGE_LIMIT - 1);
@@ -63,7 +105,8 @@ export class MessageService {
             return messages
                 .map((msg) => {
                     try {
-                        return typeof msg === 'string' ? JSON.parse(msg) : msg;
+                        const decryptedMsg = this.decrypt(msg);
+                        return typeof decryptedMsg === 'string' ? JSON.parse(decryptedMsg) : decryptedMsg;
                     } catch (e) {
                         console.error('Error parsing message:', e);
                         return null;
