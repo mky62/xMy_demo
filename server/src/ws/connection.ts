@@ -11,8 +11,6 @@ export interface ExtendedWebSocket extends WebSocket {
 }
 
 export function handleConnection(ws: WebSocket) {
-  console.log("handling new connection");
-
   const socket = ws as ExtendedWebSocket;
   socket.roomId = null;
   socket.username = null;
@@ -25,27 +23,22 @@ export function handleConnection(ws: WebSocket) {
   }));
 
   socket.on("message", async (raw: Buffer) => {
-
-    // console.log("RAW as string:", raw.toString());
-
     let msg: any;
     try {
       msg = JSON.parse(raw.toString());
-    }
-    catch {
+    } catch (error) {
+      // Send error response to client
+      roomManager.sendToUser(socket, {
+        type: "ERROR",
+        message: "Invalid JSON format"
+      });
       return;
     }
 
     await routeMessage(socket, msg);
-
   });
 
   socket.on("close", () => {
-    console.log("Client disconnected", {
-      roomId: socket.roomId,
-      username: socket.username
-    });
-
     if (!socket.roomId) return;
 
     // Use markDisconnected for reconnect handling

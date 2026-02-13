@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer } from 'ws';
 import { handleConnection } from './ws/connection.js'
 
 const wss: WebSocketServer = new WebSocketServer({ port: parseInt(process.env.PORT || '8080', 10) });
@@ -11,4 +11,6 @@ setInterval(() => {
     roomManager.checkLifecycle();
 }, 5000);
 
-console.log(`websocket running on ws://localhost:${process.env.PORT || '8080'}`);
+if (process.env.DEBUG) {
+    console.log(`WebSocket server running on ws://localhost:${process.env.PORT || '8080'}`);
+}

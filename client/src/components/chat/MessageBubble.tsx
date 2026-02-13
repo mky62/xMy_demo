@@ -9,17 +9,17 @@ interface Message {
 interface MessageBubbleProps {
   message: Message;
   isSelf: boolean;
-  isOwner: boolean;
+  isAdmin: boolean;
   onContextMenu: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const MessageBubble = React.memo(function MessageBubble({
   message,
   isSelf,
-  isOwner,
+  isAdmin,
   onContextMenu,
 }: MessageBubbleProps) {
-  const canModerate = isOwner && !isSelf;
+  const canModerate = isAdmin && !isSelf;
 
   return (
     <div className={`flex ${isSelf ? "justify-end" : "justify-start"}`}>

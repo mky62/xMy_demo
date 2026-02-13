@@ -1,13 +1,18 @@
 import { WebSocket } from 'ws';
 import { roomManager } from '../services/RoomManager.js';
 
+interface ExtendedWebSocket extends WebSocket {
+    sessionId?: string;
+    intentionalLeave?: boolean;
+}
+
 interface LeavePayload {
     type: "LEAVE_ROOM";
     sessionId?: string;
 }
 
 export function handleLeave(ws: WebSocket, payload: LeavePayload): void {
-    const socket = ws as any;
+    const socket = ws as ExtendedWebSocket;
 
     // Verify sessionId matches the socket's sessionId
     if (payload.sessionId !== socket.sessionId) {

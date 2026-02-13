@@ -8,24 +8,25 @@ class RoomManager {
     public rooms: Map<string, Room> = new Map();
     private readonly ROOM_TTL_MS = 15 * 60 * 1000; // 15 minutes
     private readonly WARNING_MS = 60 * 1000; // 1 minute
+    private readonly RECONNECT_GRACE_PERIOD_MS = 20 * 1000; // 20 seconds
 
-    public getOrCreateRoom(roomId: string, ownerSessionId: string): Room {
+    public getOrCreateRoom(roomId: string, adminSessionId: string): Room {
         let room = this.rooms.get(roomId);
         if (!room) {
             const now = Date.now();
             const expiresAt = now + this.ROOM_TTL_MS;
             const warningAt = expiresAt - this.WARNING_MS;
-            room = new Room(roomId, ownerSessionId, now, expiresAt, warningAt);
+            room = new Room(roomId, adminSessionId, now, expiresAt, warningAt);
             this.rooms.set(roomId, room);
         }
         return room;
     }
 
     public async joinRoom(roomId: string, username: string, ws: WebSocket): Promise<{
-        owner: string | null;
+        admin: string | null;
         userCount: number;
         users: string[];
-        role: 'owner' | 'participant';
+        role: 'admin' | 'participant';
         sessionId: string;
         history: BroadcastPayload[];
         expiresAt: number;
@@ -43,7 +44,7 @@ class RoomManager {
         const history = await messageService.getMessages(roomId);
 
         return {
-            owner: room.owner,
+            admin: room.admin,
             userCount: room.clients.size,
             users: Array.from(room.usernames.values()),
             role: room.getRole(socket.sessionId),
@@ -54,10 +55,10 @@ class RoomManager {
     }
 
     public async reconnectSession(roomId: string, username: string, ws: WebSocket): Promise<{
-        owner: string | null;
+        admin: string | null;
         userCount: number;
         users: string[];
-        role: 'owner' | 'participant';
+        role: 'admin' | 'participant';
         sessionId: string;
         reconnected: boolean;
         history: BroadcastPayload[];
@@ -95,14 +96,14 @@ class RoomManager {
                 text: `${username} reconnected`,
                 userCount: room.clients.size,
                 users: Array.from(room.usernames.values()),
-                owner: room.owner,
+                admin: room.admin,
             });
 
             // Fetch message history from Redis
             const history = await messageService.getMessages(roomId);
 
             return {
-                owner: room.owner,
+                admin: room.admin,
                 userCount: room.clients.size,
                 users: Array.from(room.usernames.values()),
                 role: room.getRole(socket.sessionId),
@@ -129,7 +130,7 @@ class RoomManager {
 
         const timer = setTimeout(() => {
             this.finalizeLeave(roomId, socket);
-        }, 20000);
+        }, this.RECONNECT_GRACE_PERIOD_MS);
 
         room.disconnectedUsers.set(socket.sessionId, {
             username: socket.username!,
@@ -143,11 +144,11 @@ class RoomManager {
             text: `${socket.username} disconnected`,
             userCount: room.clients.size,
             users: Array.from(room.usernames.values()),
-            owner: room.owner,
+            admin: room.admin,
         });
     }
 
-    public finalizeLeave(roomId: string, ws: WebSocket): { owner: string | null; userCount: number; username: string | null } | null {
+    public finalizeLeave(roomId: string, ws: WebSocket): { admin: string | null; userCount: number; username: string | null } | null {
         const socket = ws as CustomWebSocket;
         const room = this.rooms.get(roomId);
 
@@ -161,19 +162,19 @@ class RoomManager {
 
         room.removeClient(socket);
 
-        let newOwner = room.owner;
-        if (socket.sessionId === room.owner) {
+        let newAdmin = room.admin;
+        if (socket.sessionId === room.admin) {
             const nextClient = [...room.clients][0];
             if (nextClient) {
-                newOwner = nextClient.sessionId;
+                newAdmin = nextClient.sessionId;
             } else {
-                newOwner = [...room.disconnectedUsers.keys()][0] || null;
+                newAdmin = [...room.disconnectedUsers.keys()][0] || null;
             }
-            room.owner = newOwner;
+            room.admin = newAdmin;
         }
 
         const result = {
-            owner: newOwner,
+            admin: newAdmin,
             userCount: room.clients.size,
             users: Array.from(room.usernames.values()),
             username: socket.username
@@ -183,9 +184,11 @@ class RoomManager {
             if (room.state !== 'destroyed') {
                 room.state = 'destroyed';
                 // Clean up messages from Redis
-                messageService.deleteRoomMessages(roomId).catch(err =>
-                    console.error('Error deleting room messages:', err)
-                );
+                messageService.deleteRoomMessages(roomId).catch(err => {
+                    if (process.env.DEBUG) {
+                        console.error('[RoomManager] Error deleting room messages:', err);
+                    }
+                });
                 this.rooms.delete(roomId);
             }
         }
@@ -196,7 +199,7 @@ class RoomManager {
     public muteUser(roomId: string, requesterSessionId: string, targetUsername: string): boolean {
         const room = this.rooms.get(roomId);
         if (!room) throw new Error("room not found");
-        if (room.owner !== requesterSessionId) throw new Error("only owner can mute users");
+        if (room.admin !== requesterSessionId) throw new Error("only admin can mute users");
 
         // Note: targetUsername is passed, but we need sessionId for mutedUsers set.
         // The original code had a flaw here or expected targetUsername to be sessionId.
@@ -208,6 +211,7 @@ class RoomManager {
                 break;
             }
         }
+
 
         if (!targetSessionId) {
             // Also check disconnected users
@@ -229,7 +233,7 @@ class RoomManager {
     public unmuteUser(roomId: string, requesterSessionId: string, targetUsername: string): boolean {
         const room = this.rooms.get(roomId);
         if (!room) throw new Error("room not found");
-        if (room.owner !== requesterSessionId) throw new Error("only owner can unmute users");
+        if (room.admin !== requesterSessionId) throw new Error("only admin can unmute users");
 
         let targetSessionId: string | null = null;
         for (const [sid, uname] of room.usernames.entries()) {
@@ -255,9 +259,11 @@ class RoomManager {
         const room = this.rooms.get(roomId);
         if (room) {
             // Save to Redis (async, don't wait)
-            room.addToHistory(payload).catch(err =>
-                console.error('Error saving message to Redis:', err)
-            );
+            room.addToHistory(payload).catch(err => {
+                if (process.env.DEBUG) {
+                    console.error('[RoomManager] Error saving message to Redis:', err);
+                }
+            });
             room.broadcast(payload);
         }
     }
@@ -284,10 +290,10 @@ class RoomManager {
                 room.state = 'expiring';
                 room.warningSent = true;
 
-                if (room.owner) {
-                    const ownerSocket = [...room.clients].find(c => c.sessionId === room.owner);
-                    if (ownerSocket) {
-                        room.sendToUser(ownerSocket, {
+                if (room.admin) {
+                    const adminSocket = [...room.clients].find(c => c.sessionId === room.admin);
+                    if (adminSocket) {
+                        room.sendToUser(adminSocket, {
                             type: 'ROOM_WARNING',
                             timeLeft: Math.max(0, room.expiresAt - now),
                             text: 'Room will expire in 1 minute'
@@ -300,8 +306,9 @@ class RoomManager {
 
     public extendRoom(oldRoomId: string, requesterSessionId: string): string {
         const oldRoom = this.rooms.get(oldRoomId);
-        if (!oldRoom) throw new Error("Room not found");
-        if (oldRoom.owner !== requesterSessionId) throw new Error("Only owner can extend room");
+        if (!oldRoom) throw new Error("Room not found"); //room not exists
+
+        if (oldRoom.admin !== requesterSessionId) throw new Error("Only admin can extend room");
 
         const newRoomId = nanoid(10);
         this.getOrCreateRoom(newRoomId, requesterSessionId);

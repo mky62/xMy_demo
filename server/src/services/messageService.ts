@@ -28,7 +28,10 @@ export class MessageService {
             encrypted = Buffer.concat([encrypted, cipher.final()]);
             return iv.toString('hex') + ':' + encrypted.toString('hex');
         } catch (error) {
-            console.error("Encryption error:", error);
+            // Log encryption errors for debugging
+            if (process.env.DEBUG) {
+                console.error("[Encryption Error]", error);
+            }
             return text;
         }
     }
@@ -46,8 +49,10 @@ export class MessageService {
             decrypted = Buffer.concat([decrypted, decipher.final()]);
             return decrypted.toString();
         } catch (error) {
-            console.error("Decryption error:", error);
             // Return original text if decryption fails (e.g., legacy unencrypted messages)
+            if (process.env.DEBUG) {
+                console.error("[Decryption Error]", error);
+            }
             return text;
         }
     }
@@ -77,7 +82,10 @@ export class MessageService {
             // Set expiration time to match room TTL
             await redis.expire(key, ttlSeconds);
         } catch (error) {
-            console.error('Error saving message to Redis:', error);
+            // Log critical errors for monitoring
+            if (process.env.DEBUG) {
+                console.error("[MessageService] Failed to save message", { error });
+            }
         }
     }
 
@@ -108,14 +116,18 @@ export class MessageService {
                         const decryptedMsg = this.decrypt(msg);
                         return typeof decryptedMsg === 'string' ? JSON.parse(decryptedMsg) : decryptedMsg;
                     } catch (e) {
-                        console.error('Error parsing message:', e);
+                        if (process.env.DEBUG) {
+                            console.error("[MessageService] Failed to parse message", { error: e });
+                        }
                         return null;
                     }
                 })
                 .filter((msg): msg is BroadcastPayload => msg !== null)
                 .reverse();
         } catch (error) {
-            console.error('Error getting messages from Redis:', error);
+            if (process.env.DEBUG) {
+                console.error("[MessageService] Failed to retrieve messages", { error });
+            }
             return [];
         }
     }
@@ -129,7 +141,9 @@ export class MessageService {
             const key = this.getRoomKey(roomId);
             await redis.del(key);
         } catch (error) {
-            console.error('Error deleting room messages from Redis:', error);
+            if (process.env.DEBUG) {
+                console.error("[MessageService] Failed to delete room messages", { error });
+            }
         }
     }
 
@@ -141,7 +155,9 @@ export class MessageService {
             const result = await redis.ping();
             return result === 'PONG';
         } catch (error) {
-            console.error('Redis health check failed:', error);
+            if (process.env.DEBUG) {
+                console.error("[MessageService] Redis health check failed", { error });
+            }
             return false;
         }
     }

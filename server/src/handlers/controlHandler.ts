@@ -54,15 +54,23 @@ export function handleControl(ws: ExtendedWebSocket, payload: ControlPayload): v
         if (payload.type === "MUTE_USER" || payload.type === "UNMUTE_USER") {
             roomManager.broadcast(ws.roomId, {
                 type: "SYSTEM",
-                text: `${payload.targetUsername} was ${payload.type === "MUTE_USER" ? "muted" : "unmuted"} by the owner`,
+                text: `${payload.targetUsername} was ${payload.type === "MUTE_USER" ? "muted" : "unmuted"} by the admin`,
             });
 
             // Broadcast updated mute list
             const room = roomManager.rooms.get(ws.roomId);
             if (room) {
+                // Convert sessionIds back to usernames for the client
+                const mutedUsernames: string[] = [];
+                for (const sessionId of room.mutedUsers) {
+                    const username = room.usernames.get(sessionId);
+                    if (username) {
+                        mutedUsernames.push(username);
+                    }
+                }
                 roomManager.broadcast(ws.roomId, {
                     type: "MUTE_STATE",
-                    mutedUsers: Array.from(room.mutedUsers)
+                    mutedUsers: mutedUsernames
                 });
             }
         }

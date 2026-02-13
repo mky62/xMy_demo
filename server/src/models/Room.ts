@@ -9,7 +9,7 @@ import { messageService } from "../services/messageService.js";
 
 export class Room {
     public readonly id: string;
-    public owner: string | null;
+    public admin: string | null;
     public clients: Set<CustomWebSocket> = new Set();
     public mutedUsers: Set<string> = new Set();
     public usernames: Map<string, string> = new Map();
@@ -22,9 +22,9 @@ export class Room {
     public warningAt: number;
     public warningSent: boolean = false;
 
-    constructor(id: string, ownerSessionId: string, createdAt: number, expiresAt: number, warningAt: number) {
+    constructor(id: string, adminSessionId: string, createdAt: number, expiresAt: number, warningAt: number) {
         this.id = id;
-        this.owner = ownerSessionId;
+        this.admin = adminSessionId;
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
         this.warningAt = warningAt;
@@ -63,8 +63,8 @@ export class Room {
         this.usernames.set(socket.sessionId, username);
         this.clients.add(socket);
 
-        if (!this.owner) {
-            this.owner = socket.sessionId;
+        if (!this.admin) {
+            this.admin = socket.sessionId;
         }
     }
 
@@ -73,8 +73,8 @@ export class Room {
         this.usernames.delete(socket.sessionId);
     }
 
-    public getRole(sessionId: string): 'owner' | 'participant' {
-        return this.owner === sessionId ? 'owner' : 'participant';
+    public getRole(sessionId: string): 'admin' | 'participant' {
+        return this.admin === sessionId ? 'admin' : 'participant';
     }
 
     public hasUsername(username: string): boolean {

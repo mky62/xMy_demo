@@ -1,6 +1,9 @@
 import { WebSocket } from 'ws';
 import { roomManager } from '../services/RoomManager.js'
 
+interface ExtendedWebSocket extends WebSocket {
+    sessionId?: string;
+}
 
 interface JoinPayload {
     type: "JOIN_ROOM";
@@ -15,7 +18,7 @@ export async function handleJoin(ws: WebSocket, payload: JoinPayload): Promise<v
     }
 
     // Verify sessionId matches the socket's sessionId
-    const socket = ws as any;
+    const socket = ws as ExtendedWebSocket;
     if (payload.sessionId !== socket.sessionId) {
         roomManager.sendToUser(ws, {
             type: "ERROR",
@@ -36,10 +39,10 @@ export async function handleJoin(ws: WebSocket, payload: JoinPayload): Promise<v
     }
 
     let result: {
-        owner: string | null;
+        admin: string | null;
         userCount: number;
         users: string[];
-        role: 'owner' | 'participant';
+        role: 'admin' | 'participant';
         reconnected?: boolean;
         sessionId: string;
         history: any[];
@@ -57,7 +60,7 @@ export async function handleJoin(ws: WebSocket, payload: JoinPayload): Promise<v
         return;
     }
 
-    const { owner, userCount, users, role, sessionId, history } = result;
+    const { admin, userCount, users, role, sessionId, history } = result;
 
     // Send authoritative join confirmation to user
     roomManager.sendToUser(ws, {
@@ -67,10 +70,10 @@ export async function handleJoin(ws: WebSocket, payload: JoinPayload): Promise<v
         userCount,
         users,
         history,
-        owner,
+        admin,
         role,
         sessionId,
-        isOwner: role === 'owner',
+        isAdmin: role === 'admin',
         reconnected: result.reconnected || false,
         expiresAt: result.expiresAt
     });
@@ -81,6 +84,6 @@ export async function handleJoin(ws: WebSocket, payload: JoinPayload): Promise<v
         text: `${payload.username} joined the room`,
         userCount,
         users,
-        owner,
+        admin,
     });
 }

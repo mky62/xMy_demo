@@ -26,7 +26,7 @@ function ChatView() {
   const [userCount, setUserCount] = useState<number>(0);
   const [mutedUsers, setMutedUsers] = useState<Set<string>>(new Set());
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
-  const [role, setRole] = useState<'owner' | 'participant' | null>(null);
+  const [role, setRole] = useState<'admin' | 'participant' | null>(null);
   const [joinConfirmed, setJoinConfirmed] = useState<boolean>(false);
   const [users, setUsers] = useState<string[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
@@ -260,7 +260,7 @@ function ChatView() {
                     key={m.id}
                     message={m}
                     isSelf={m.username === username}
-                    isOwner={role === 'owner'}
+                    isAdmin={role === 'admin'}
                     onContextMenu={(e) => handleContextMenu(e, m)}
                   />
                 )
@@ -287,7 +287,7 @@ function ChatView() {
             onDelete={handleDeleteMessage}
             onMute={handleToggleMute}
             isMuted={contextMenu.username ? mutedUsers.has(contextMenu.username) : false}
-            canMute={role === 'owner' && contextMenu.username !== username}
+            canMute={role === 'admin' && contextMenu.username !== username}
           />
         )}
 

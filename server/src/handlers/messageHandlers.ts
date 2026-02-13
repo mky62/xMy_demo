@@ -6,6 +6,7 @@ import { WebSocket } from "ws";
 interface ExtendedWebSocket extends WebSocket {
     roomId?: string;
     username?: string;
+    sessionId?: string;
 }
 
 interface DeleteMessagePayload {
@@ -22,13 +23,27 @@ interface TextMessagePayload {
 
 type MessagePayload = DeleteMessagePayload | TextMessagePayload;
 
-export function handleMessage(ws: ExtendedWebSocket, payload: MessagePayload): void {
-    if (!ws.roomId || !ws.username) return;
+/**
+ * Sanitize user input to prevent XSS attacks
+ * Escapes HTML special characters
+ */
+function sanitizeMessage(text: string): string {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;');
+}
 
-    if (roomManager.isMuted(ws.roomId, ws.username)) {
+export function handleMessage(ws: ExtendedWebSocket, payload: MessagePayload): void {
+    if (!ws.roomId || !ws.username || !ws.sessionId) return;
+
+    if (roomManager.isMuted(ws.roomId, ws.sessionId)) {
         roomManager.sendToUser(ws, {
             type: "SYSTEM",
-            text: "You are muted by the room owner",
+            text: "You are muted by the room admin",
         });
         return;
     }
@@ -59,11 +74,14 @@ export function handleMessage(ws: ExtendedWebSocket, payload: MessagePayload): v
         return;
     }
 
+    // Sanitize message to prevent XSS
+    const sanitizedText = sanitizeMessage(payload.text);
+
     roomManager.broadcast(ws.roomId, {
         id: crypto.randomUUID(),
         type: "MESSAGE",
         username: ws.username,
-        text: payload.text,
+        text: sanitizedText,
         timestamp: Date.now(),
     });
 }
